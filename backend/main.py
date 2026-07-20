@@ -31,6 +31,7 @@ app.add_middleware(
 # ── Pydantic Models ────────────────────────────────────────────────────────────
 class QueryRequest(BaseModel):
     question: str
+    mode: str = "balanced"
 
 class ChatResponse(BaseModel):
     answer: str
@@ -96,6 +97,13 @@ async def chat(request: QueryRequest):
         raise HTTPException(status_code=400, detail="No document loaded. Upload a PDF first.")
 
     try:
+        if request.mode == "fast":
+            max_iterations = 1
+        elif request.mode == "deep":
+            max_iterations = 3
+        else:
+            max_iterations = 2
+
         result = rag_app.invoke({
             "question": request.question.strip(),
             "refined_query": "",
@@ -103,6 +111,7 @@ async def chat(request: QueryRequest):
             "reflection": "",
             "answer": "",
             "iterations": 0,
+            "max_iterations": max_iterations,
             "reflection_log": [],
         })
 

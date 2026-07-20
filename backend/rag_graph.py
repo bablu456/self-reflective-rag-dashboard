@@ -60,6 +60,7 @@ class GraphState(TypedDict):
     reflection: str        # Latest grading output from the LLM
     answer: str            # Final generated answer
     iterations: int        # How many retrieval loops have run
+    max_iterations: int    # Mode-based iteration limit
     reflection_log: List[str]  # Full history of every grading step
 
 
@@ -170,7 +171,8 @@ def should_continue(state: GraphState) -> str:
     Route to 'rewrite' otherwise to refine the query and re-retrieve.
     """
     iterations = state.get("iterations", 0)
-    if iterations >= MAX_ITERATIONS:
+    max_iters = state.get("max_iterations", 3)
+    if iterations >= max_iters:
         return "generate"  # forced exit — generate with best context so far
 
     reflection = state.get("reflection", "")
